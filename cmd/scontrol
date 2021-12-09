@@ -112,6 +112,7 @@ Usage: $pname  [<OPTION>] [<COMMAND>]
                                 <jobid_list> argument is 
                                 a comma separated list of job IDs.
      show version               show SLURM version (of course we will show LSF version)
+     show nodes                 show compute nodes (only NodeA and ..)
 
 
 
@@ -186,6 +187,15 @@ sub parseOptions
 	system("lsinfo -V 2>&1 | head -1");
 	exit (0);
     }    
+
+    if (($command_args[0]  eq "show") && ($command_args[1]  eq "nodes")) {
+        $host_list=`bhosts -o "HOST_NAME" -noheader`;
+        my @hosts = split /\n/, $host_list;
+        foreach my $host (@hosts) {
+        print STDOUT "NodeAddr=$host NodeHostName=$host\n";
+        }
+        exit (0);
+    }
 
     @g_jobid_list= split ',', $command_args[1];
 
