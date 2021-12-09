@@ -111,9 +111,9 @@ Usage: $pname  [<OPTION>] [<COMMAND>]
      hold <jobid_list>          prevent specified job from starting. 
                                 <jobid_list> argument is 
                                 a comma separated list of job IDs.
-     show version               show SLURM version (of course we will show LSF version)
-     show nodes                 show compute nodes (only NodeA and ..)
-
+     show version               show "SLURM" version
+     show nodes                 list nodes in cluster
+     show job <jobid_list>      list details of given jobs
 
 
 Help options:
@@ -157,7 +157,7 @@ sub parseOptions
     }
 
     # COMMAND value only accept two value, "command jobid_list"
-    if (scalar(@command_args) != 2) { # executable shoulde not start with '-' char
+    if (scalar(@command_args) gt "3") { # executable shoulde not start with '-' char
         print STDERR "$pname: invalid <COMMAND> or jobid_list -- '@command_args', or not supported by the wrapper\n";
         print STDERR "Try \"$pname --help\" for more information\n";
         exit (1);
@@ -194,6 +194,25 @@ sub parseOptions
         foreach my $host (@hosts) {
         print STDOUT "NodeAddr=$host NodeHostName=$host\n";
         }
+        exit (0);
+    }
+
+    if (($command_args[0]  eq "show") && ($command_args[1]  eq "job")) {
+	$filename="/tmp/jobs.$ENV{'USER'}.$$";
+	open JOBSFILE, ">$filename" or die "can't open $filename file to write\n";
+    	$jobs=`bjobs -o 'JOBID JOB_NAME USER QUEUE EXEC_HOST SUBMIT_TIME START_TIME delimiter=","' -noheader $command_args[2]`;
+	print JOBSFILE "$jobs";
+	close JOBSFILE;
+	open(my $data, '<', $filename) or die "Could not open '$filename' $!\n";
+	while (my $line = <$data>) {
+ 	 	chomp $line;
+  		my @fields = split "," , $line;
+		my $submittime=`date --date "$fields[5]" +"%Y-%m-%dT%H:%M:%S"`;
+		$submittime=~ s/\r|\n//;
+		my $starttime=`date --date "$fields[6]" +"%Y-%m-%dT%H:%M:%S"`;
+		$starttime=~ s/\r|\n//;
+		print STDOUT "JobID=$fields[0] JobName=$fields[1] UserId=$fields[2] Partition=$fields[3] NodeList=$fields[4] SubmitTime=$submittime StartTime=$starttime EligibleTime=N/A EndTime=N/A ErrorFile=N/A ExitCode=N/A StdIn=N/A LastCheckEval=N/A StdOut=N/A Reason=N/A TRES=N/A State=N/A WorkDir=N/A\n";
+	}
         exit (0);
     }
 
