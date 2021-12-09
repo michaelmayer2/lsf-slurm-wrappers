@@ -111,6 +111,7 @@ Usage: $pname  [<OPTION>] [<COMMAND>]
      hold <jobid_list>          prevent specified job from starting. 
                                 <jobid_list> argument is 
                                 a comma separated list of job IDs.
+     show version               show SLURM version (of course we will show LSF version)
 
 
 
@@ -175,9 +176,16 @@ sub parseOptions
         $g_cli_lsf = "bresume";    
     } elsif ($command_args[0]  eq "hold") {
         $g_cli_lsf = "bstop";    
+    } elsif ($command_args[0]  eq "show") {
+        $g_cli_lsf = "show";
     } else {
         showUsage();
     }
+
+    if (($command_args[0]  eq "show") && ($command_args[1]  eq "version")) {
+	system("lsinfo -V 2>&1 | head -1");
+	exit (0);
+    }    
 
     @g_jobid_list= split ',', $command_args[1];
 
