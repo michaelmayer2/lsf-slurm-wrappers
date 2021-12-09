@@ -111,7 +111,7 @@ Usage: $pname  [<OPTION>] [<COMMAND>]
      hold <jobid_list>          prevent specified job from starting. 
                                 <jobid_list> argument is 
                                 a comma separated list of job IDs.
-     show version               show "SLURM" version
+     version                    show "SLURM" version
      show nodes                 list nodes in cluster
      show job <jobid_list>      list details of given jobs
 
@@ -138,7 +138,9 @@ sub parseOptions
     local $job_status = "";
     $ret = GetOptions(
             'help|h' => \$g_help_option_slurm,
-            #'verbose|v' => \$g_verbose_option_slurm,
+            'oneliner|o' => \$ingore_value,
+	    'version|v' => \$g_version_option_slurm, 
+	    #'verbose|v' => \$g_verbose_option_slurm,
             #'clusters|M=s' => \$g_clusters_option_slurm,
             #'nodes|N=s' => \$ingore_value,
             '<>' => sub { push (@command_args, @_) }
@@ -153,6 +155,11 @@ sub parseOptions
     if (1 == $g_help_option_slurm) {
         showUsage();
         close_debug_file();
+        exit (0);
+    }
+
+    if (1 == $g_version_option_slurm) {
+        system("lsinfo -V 2>&1 | head -1");
         exit (0);
     }
 
@@ -183,7 +190,7 @@ sub parseOptions
         showUsage();
     }
 
-    if (($command_args[0]  eq "show") && ($command_args[1]  eq "version")) {
+    if ($command_args[0]  eq "version") {
 	system("lsinfo -V 2>&1 | head -1");
 	exit (0);
     }    
@@ -299,4 +306,5 @@ for ($line_idx = 0; $line_idx <= $#all_output; $line_idx++) {
 
 
 close_debug_file();
+
 
