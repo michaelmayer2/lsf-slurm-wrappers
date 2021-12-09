@@ -33,11 +33,14 @@ use Getopt::Long qw(GetOptionsFromArray);
 Getopt::Long::Configure("bundling", "no_ignore_case", "pass_through");
 
 use IO::File;
-use POSIX qw(tmpnam);
+use File::Temp qw(tmpnam);
 
 use IO::Handle;
 STDOUT->autoflush(1);
 STDERR->autoflush(1);
+
+use Env::Modify qw(:bash source);
+source("/usr/share/lsf/conf/profile.lsf");
 
 my ($debug) = 0; # 0: on/off debug depends on env SLURM_TO_LSF_DEBUG and SLURM_TO_LSF_DEBUG_SRUN
 my $pname = basename $0;
