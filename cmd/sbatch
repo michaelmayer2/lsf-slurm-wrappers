@@ -33,7 +33,7 @@ use Cwd qw(abs_path);
 
 use Getopt::Long;
 use Getopt::Long qw(GetOptionsFromArray);
-Getopt::Long::Configure("bundling", "no_ignore_case", "pass_through");
+Getopt::Long::Configure("no_ignore_case", "pass_through");
 
 use IO::File;
 use File::Temp qw(tmpnam);
@@ -48,7 +48,7 @@ source("/usr/share/lsf/conf/profile.lsf");
 my ($debug) = 0; # 0: on/off debug depends on env SLURM_TO_LSF_DEBUG and SLURM_TO_LSF_DEBUG_SBATCH
 my $pname = basename $0;
 
-my $g_cli_lsf = "bsub -oo slurm-%J.out";
+my $g_cli_lsf = "bsub -oo /home/mm/slurm-%J.out";
 my $g_host_mxj = 0;
 my $g_executable_args = "";
 my $g_executable = "";
@@ -202,9 +202,10 @@ sub parseOptions
     local @slurm_cmd_options = ();
     local @executable_args = ();
     local $ingore_value;
+    local @ingore_values;
 
     @myopts = @ARGV;
-    local $ret = GetOptionsFromArray(\@myopts, 
+    local $ret = GetOptions( 
             'help|h' => \$ingore_value,
             'usage' => \$ingore_value,
             #'error|e=s' => \$ingore_value,
@@ -215,7 +216,7 @@ sub parseOptions
             'exclusive=s' => \$ingore_value,
             'hold|H' => \$ingore_value,
             #'input|i=s' => \$ingore_value,
-            'job-name|J=s' => \$ingore_value,
+            'job-name|J=s{1,}' => \@ingore_values,
             'mail-user=s' => \$ingore_value,
             'partition|p=s' => \$ingore_value,
             'time|t=s' => \$ingore_value,
@@ -223,8 +224,14 @@ sub parseOptions
             'ntasks|n=s' => \$ingore_value,
             'ntasks-per-node=s' => \$ingore_value,
             'nodes|N=s' => \$ingore_value,
+	    'parsable|P' => \$ingore_value,
+	    'no-requeue' => \$ingore_value,
+	    'cpus-per-task=s' => \$ingore_value,
+	    'mem=s' => \$ingore_value,
+	    'output=s{1,}' => \@ingore_values,
+	    'error=s{1,}' => \@ingore_values,
             '<>' => sub { push (@executable_args, @_) }
-            );
+    );
     print DBGFILE __LINE__." ret: $ret\n";
 
     print DBGFILE "executable_args: @executable_args\n";

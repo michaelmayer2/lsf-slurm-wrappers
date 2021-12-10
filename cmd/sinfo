@@ -133,6 +133,7 @@ Usage: sinfo [OPTIONS]
   -l, --long                 long output - displays more information
   -N, --Node                 Node-centric format 
   -p, --partition=PARTITION  report on specific partition
+  --noheader 		     do not display header
 
 Help options:
   --help                     show this help message
@@ -160,7 +161,9 @@ sub parseOptions
             'Node|N' => \$g_capital_node_option_slurm,
             #'nodes|n=s' => \$g_nodes_option_slurm,
             'partition|p=s' => \$g_partition_option_slurm,
-            ); 
+            'format=s' => \$g_format_option_slurm,
+            'noheader' => \$g_noheader_option_slurm,
+    ); 
 
     print DBGFILE __LINE__." ret: $ret\n";
     if (1 != $ret) {
@@ -457,21 +460,21 @@ for ($i = 1; $i <= $#all_queues; $i++) {
     
 }
 
-
-if (1 == $g_long_option_slurm) {
-    print `date`;
-    if (1 == $g_capital_node_option_slurm) {
-        print "NODELIST   NODES PARTITION       STATE CPUS     S:C:T MEMORY TMP_DISK WEIGHT AVAIL_FE REASON\n";
+if (0 == $g_noheader_option_slurm) {
+    if (1 == $g_long_option_slurm) {
+        print `date`;
+        if (1 == $g_capital_node_option_slurm) {
+            print "NODELIST   NODES PARTITION       STATE CPUS     S:C:T MEMORY TMP_DISK WEIGHT AVAIL_FE REASON\n";
+        } else {
+            print "PARTITION    AVAIL  TIMELIMIT   JOB_SIZE ROOT OVERSUBS     GROUPS  NODES       STATE NODELIST\n";
+        }
     } else {
-        print "PARTITION    AVAIL  TIMELIMIT   JOB_SIZE ROOT OVERSUBS     GROUPS  NODES       STATE NODELIST\n";
+        if (1 == $g_capital_node_option_slurm) {
+            print "NODELIST   NODES PARTITION       STATE\n";
+        } else {
+	    print "PARTITION    AVAIL  TIMELIMIT    NODES      STATE NODELIST\n";
+        }
     }
-} else {
-    if (1 == $g_capital_node_option_slurm) {
-        print "NODELIST   NODES PARTITION       STATE\n";
-    } else {
-        print "PARTITION    AVAIL  TIMELIMIT    NODES      STATE NODELIST\n";
-    }
-    
 }
 
 if ($g_partition_option_slurm ne "") { # -p
@@ -516,24 +519,24 @@ if ($g_partition_option_slurm ne "") { # -p
                     # if (($query_partitions[$query_idx] =~ /$one_output_line[0]/) or ($one_output_line[0] =~ /$query_partitions[$query_idx]/)) {
                     if (($query_partitions[$query_idx] eq $one_output_line[0]) or ($one_output_line[0] eq $query_partitions[$query_idx]."*")) {
                         printf ("%-12s ", $one_output_line[0]); # PARTITION
-                        printf ("%5s ", $one_output_line[1]); # AVAIL
-                        $one_output_line[2] =~ s/ min//;
-                        printf ("%10s ", $one_output_line[2]); # TIMELIMIT
-                        if (1 == $g_long_option_slurm) {
-                            if (!($one_output_line[3] =~ /infinite/)) {
-                                $one_output_line[3] =~ /(\d+)/;
-                                printf ("%12s ", $1); # JOB_SIZE
-                            } else {
-                                printf ("%12s ", $one_output_line[3]); # JOB_SIZE
-                            }
-                            printf ("%4s ", $one_output_line[4]); # ROOT
-                            printf ("%4s ", $one_output_line[5]); # OVERSUBS
-                            printf ("%10s ", $one_output_line[6]); # GROUPS
-                        }
-                        printf ("%8s ", $one_output_line[7]); # NODES
-                        printf ("%10s ", $one_output_line[8]); # STATE
-                        printf ("%s ", $one_output_line[9]); # NODELIST
-                        print "\n";
+			printf ("%5s ", $one_output_line[1]); # AVAIL
+			$one_output_line[2] =~ s/ min//;
+			printf ("%10s ", $one_output_line[2]); # TIMELIMIT
+			if (1 == $g_long_option_slurm) {
+			   if (!($one_output_line[3] =~ /infinite/)) {
+			       $one_output_line[3] =~ /(\d+)/;
+			       printf ("%12s ", $1); # JOB_SIZE
+			   } else {
+			       printf ("%12s ", $one_output_line[3]); # JOB_SIZE
+			   }
+			   printf ("%4s ", $one_output_line[4]); # ROOT
+			   printf ("%4s ", $one_output_line[5]); # OVERSUBS
+			   printf ("%10s ", $one_output_line[6]); # GROUPS
+			}
+			printf ("%8s ", $one_output_line[7]); # NODES
+			printf ("%10s ", $one_output_line[8]); # STATE
+			printf ("%s ", $one_output_line[9]); # NODELIST
+			print "\n";
                     }
                 }
             }
@@ -572,23 +575,25 @@ if ($g_partition_option_slurm ne "") { # -p
             for ($q_idx = 0; $q_idx <= $#one_queues; $q_idx++) {
                 @one_output_line = split(/,/, $one_queues[$q_idx], 10);
                 printf ("%-12s ", $one_output_line[0]); # PARTITION
-                printf ("%5s ", $one_output_line[1]); # AVAIL
-                $one_output_line[2] =~ s/ min//;
-                printf ("%10s ", $one_output_line[2]); # TIMELIMIT
-                if (1 == $g_long_option_slurm) {
-                    if (!($one_output_line[3] =~ /infinite/)) {
-                        $one_output_line[3] =~ /(\d+)/;
-                        printf ("%12s ", $1); # JOB_SIZE
-                    } else {
-                        printf ("%12s ", $one_output_line[3]); # JOB_SIZE
+		if ( 1 == $g_format_option_slurm ) {
+                    printf ("%5s ", $one_output_line[1]); # AVAIL
+                    $one_output_line[2] =~ s/ min//;
+                    printf ("%10s ", $one_output_line[2]); # TIMELIMIT
+                    if (1 == $g_long_option_slurm) {
+                        if (!($one_output_line[3] =~ /infinite/)) {
+                            $one_output_line[3] =~ /(\d+)/;
+                            printf ("%12s ", $1); # JOB_SIZE
+                        } else {
+                            printf ("%12s ", $one_output_line[3]); # JOB_SIZE
+                        }
+                        printf ("%4s ", $one_output_line[4]); # ROOT
+                        printf ("%4s ", $one_output_line[5]); # OVERSUBS
+                        printf ("%10s ", $one_output_line[6]); # GROUPS
                     }
-                    printf ("%4s ", $one_output_line[4]); # ROOT
-                    printf ("%4s ", $one_output_line[5]); # OVERSUBS
-                    printf ("%10s ", $one_output_line[6]); # GROUPS
-                }
-                printf ("%8s ", $one_output_line[7]); # NODES
-                printf ("%10s ", $one_output_line[8]); # STATE
-                printf ("%s ", $one_output_line[9]); # NODELIST
+                    printf ("%8s ", $one_output_line[7]); # NODES
+                    printf ("%10s ", $one_output_line[8]); # STATE
+                    printf ("%s ", $one_output_line[9]); # NODELIST
+	        }
                 print "\n";
             }
         }

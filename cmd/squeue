@@ -183,7 +183,10 @@ sub parseOptions
             'name|n=s' => \$g_jobname_option_slurm,
             'partition|p=s' => \$g_partition_option_slurm,
             'user|u=s' => \$g_user_option_slurm,
-            ); 
+	    'Format|F=s' => \$g_format_option_slurm,
+	    'noheader|H' => \$g_noheader_option_slurm,
+	    'state|s=s' => \$g_state_option_slurm,
+    ); 
 
     print DBGFILE __LINE__." ret: $ret\n";
     if (1 != $ret) {
